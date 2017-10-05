@@ -1,0 +1,1 @@
+/usr/bin/cc  -g   CMakeFiles/project10.dir/main.c.o CMakeFiles/project10.dir/simplemotion.c.o CMakeFiles/project10.dir/tcpclient.c.o CMakeFiles/project10.dir/sm_consts.c.o CMakeFiles/project10.dir/pcserialport.c.o CMakeFiles/project10.dir/devicedeployment.c.o CMakeFiles/project10.dir/busdevice.c.o CMakeFiles/project10.dir/bufferedmotion.c.o  -o project10 -rdynamic -lm 
