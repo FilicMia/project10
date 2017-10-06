@@ -69,6 +69,8 @@ stdio.h
 -
 stdlib.h
 -
+string.h
+-
 simplemotion.h
 /home/mia/projects/project10/simplemotion.h
 

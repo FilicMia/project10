@@ -947,7 +947,7 @@ SM_STATUS recordStatus( const smbus handle, const SM_STATUS stat )
 /** This function returns all occurred SM_STATUS bits after smOpenBus or resetCumulativeStatus call*/
 SM_STATUS getCumulativeStatus( const smbus handle )
 {
-    printf("%d\n",smIsHandleOpen(handle));
+
     if(smIsHandleOpen(handle)==smfalse) return SM_ERR_NODEVICE;
 
     return smBus[handle].cumulativeSmStatus;

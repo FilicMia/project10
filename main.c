@@ -17,53 +17,56 @@ smbus busHandle = -1;
 /*
  Append stre to str1.
  */
-void appendString(char* str1, char* str2){
-    if((str1 = realloc(str1, strlen(str1)+strlen(str2)+1)) != NULL){
-        strcat(str1,str2);
+void appendString(char** str1, char* str2){
+    char *newstring;
+    if((newstring = malloc(strlen(*str1)+strlen(str2)+1)) != NULL){
+           strcat(newstring,*str1);
+	   strcat(newstring,str2);
     } else {
         printf("malloc failed!\n");
     }
-    printf("%s", str1);
+    *str1 = newstring;
   
 }
 
 //MIAMIAMAIMAI TU JE SEGM fault
 char* stringifySMBusErrors(SM_STATUS smStat, smint32 smDeviceErrors)
 {
-    char* errorString = "";
+    char* errorString = (char *) malloc(4);
+    errorString = strcpy(errorString,"");
 
     if( ((smStat!=SM_OK && smStat!=SM_NONE) || smDeviceErrors!=SMP_CMD_STATUS_ACK ))
     {
             char* errorFlags = (char *) malloc(4);
-            errorFlags = strcpy(errorFlags,"\0");
-            char* smErrorFlags = "";
+            errorFlags = strcpy(errorFlags,"");
+            char* smErrorFlags = (char *) malloc(4);
+	    smErrorFlags = strcpy(smErrorFlags,"");
             //these faults are from SM bus host side
-            if(smStat&SM_ERR_NODEVICE) appendString(errorFlags,"* NoDevice (check port name)");
-            if(smStat&SM_ERR_PARAMETER) appendString(errorFlags, "* InvalidParameter (API)");
-            //TUU JEE
-            if(smStat&SM_ERR_COMMUNICATION) appendString(errorFlags, "* Communication (cheksum mismatch)<br>");
-            if(smStat&SM_ERR_LENGTH) appendString(errorFlags, "* DataLegth (timeout or app error)");
-            if(smStat&SM_ERR_BUS)  appendString(errorFlags,"* BusError");
-            printf("Error: %d\n",smStat&SM_ERR_COMMUNICATION);
-
-//             if(!(smStat&SM_ERR_NODEVICE))//ignore device side faults if nodevice is active because it would make no sense
-//             {
-//                 device errors are read from the device (so connection must be working). these are error flags of device side of SM bus
-//                 if(smDeviceErrors&SMP_CMD_STATUS_NACK) strcat(smErrorFlags,"* Command fail (NACK)<br>");
-//                 if(smDeviceErrors&SMP_CMD_STATUS_INVALID_ADDR) strcat(smErrorFlags, "* Invalid param address<br>");
-//                 if(smDeviceErrors&SMP_CMD_STATUS_INVALID_VALUE) strcat(smErrorFlags,"* Invalid param value<br>");
-//                 if(smDeviceErrors&SMP_CMD_STATUS_VALUE_TOO_HIGH) strcat(smErrorFlags, "* Value too high<br>");
-//                 if(smDeviceErrors&SMP_CMD_STATUS_VALUE_TOO_LOW) strcat(smErrorFlags,"* Value too low<br>");
-// 
-//             }
+            if(smStat&SM_ERR_NODEVICE) appendString(&errorFlags,"* NoDevice (check port name)");
+	    if(smStat&SM_ERR_PARAMETER) appendString(&errorFlags, "* InvalidParameter (API)");
+            if(smStat&SM_ERR_COMMUNICATION) appendString(&errorFlags, "* Communication (cheksum mismatch)<br>");
+            if(smStat&SM_ERR_LENGTH) appendString(&errorFlags, "* DataLegth (timeout or app error)");
+            if(smStat&SM_ERR_BUS)  appendString(&errorFlags,"* BusError");
             
-            if(strlen(errorFlags))
-                strcat("Bus error flags: ",errorFlags);
-            else
-                errorString="Communication error.";
-            if(strlen(smErrorFlags)) strcat("Device errors:",smErrorFlags);
-    }
 
+            if(!(smStat&SM_ERR_NODEVICE))//ignore device side faults if nodevice is active because it would make no sense
+            {
+                //device errors are read from the device (so connection must be working). these are error flags of device side of SM bus
+                if(smDeviceErrors&SMP_CMD_STATUS_NACK) appendString(&smErrorFlags,"* Command fail (NACK)<br>");
+                if(smDeviceErrors&SMP_CMD_STATUS_INVALID_ADDR) appendString(&smErrorFlags, "* Invalid param address<br>");
+                if(smDeviceErrors&SMP_CMD_STATUS_INVALID_VALUE) appendString(&smErrorFlags,"* Invalid param value<br>");
+                if(smDeviceErrors&SMP_CMD_STATUS_VALUE_TOO_HIGH) appendString(&smErrorFlags, "* Value too high<br>");
+                if(smDeviceErrors&SMP_CMD_STATUS_VALUE_TOO_LOW) appendString(&smErrorFlags,"* Value too low<br>");
+
+            }
+            
+            if(strlen(errorFlags)){
+                errorString = "Bus error flags:";
+		appendString(&errorString,errorFlags);
+	    }else
+                errorString="Communication error. Device errors:";
+            if(strlen(smErrorFlags)) strcat(errorString,smErrorFlags);
+    }
     return errorString;
 }
 
@@ -95,12 +98,11 @@ AD SMP_CUMULATIVE_STATUS PARAMETER.
     if(fast==0)
     {
         smRead1Parameter(busHandle,deviceAddress,SMP_CUMULATIVE_STATUS,&SMDeviceSideCommStatus);
-        printf("eto1\n");
         //if we have some error bits on, reset them, so we can spot new errors later
         if(SMDeviceSideCommStatus!=0)
         {
             smSetParameter(busHandle,deviceAddress,SMP_CUMULATIVE_STATUS,0);
-            printf("eto2\n");
+        
         }
     }
     else
@@ -109,20 +111,17 @@ AD SMP_CUMULATIVE_STATUS PARAMETER.
     }
 
     //read cumulative bus status errors and all convert (1) and (2) bits to human readable form:
-    printf("Status: %d\n",getCumulativeStatus(busHandle));
     errs=stringifySMBusErrors(getCumulativeStatus(busHandle), SMDeviceSideCommStatus);
-    printf("eto3\n");
 
     //reset local errors bits
-//     resetCumulativeStatus(busHandle);
-//     printf("eto4");
-// // 
-//     //if there were errors, log them
-//     if(strlen(errs) != 0)
-//     {
-//        printf("%s",errs);
-//        return 1;
-//     }
+    resetCumulativeStatus(busHandle);
+// 
+    //if there were errors, log them
+    if(strlen(errs) != 0)
+    {
+       printf("%s\n",errs);
+       return 1;
+    }
 
     return 0;
 }
@@ -136,7 +135,7 @@ void on_connect_clicked()
     }
     else
         printf("Couldn't connect to bus %ld \n", busHandle);
-    printf("%d",checkAndReportSMBusErrors(0));
+    checkAndReportSMBusErrors(0);
 }
 
 void on_disconnect_clicked()
