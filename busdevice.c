@@ -182,8 +182,11 @@ smbusdevicehandle smBDOpen( const char *devicename )
 
 	//all handles in use
 	if(handle>=SM_MAX_BUSES) return -1;
+    
+    
+//     printf("in smBDOpen, %d", strncmp(devicename,"/dev/tty",8));
 
-        if(strncmp(devicename,"COM",3) == 0 || strncmp(devicename,"/dev/tty",8) == 0 || strncmp(devicename,"/dev/cu.",8) == 0) //use rs232 lib
+    if(strncmp(devicename,"COM",3) == 0 || strncmp(devicename,"/dev/tty",8) == 0 || strncmp(devicename,"/dev/cu.",8) == 0) //use rs232 lib
 	{
             BusDevice[handle].comPort=serialPortOpen( devicename, SMBusBaudrate );
                 if( BusDevice[handle].comPort == -1 )
@@ -202,6 +205,8 @@ smbusdevicehandle smBDOpen( const char *devicename )
         BusDevice[handle].comPort=OpenTCPPort( ip, port );
         if( BusDevice[handle].comPort == -1 )
         {
+//             printf("in smBDOpen\n");
+//             printf("TCP connection failed\n");
             return -1; //failed to open
         }
         BusDevice[handle].bdType=BD_TCP;
@@ -209,6 +214,8 @@ smbusdevicehandle smBDOpen( const char *devicename )
     }
     else//no other bus types supproted yet
     {
+//         printf("in smBDOpen\n");
+//         printf("no other bus types supproted yet\n");
         return -1;
     }
 

@@ -204,14 +204,23 @@ smbus smOpenBus( const char * devicename )
     //all handles in use
     if(handle>=SM_MAX_BUSES) return -1;
 
-    //open bus device
+    //open bus device -- tu stane!!!
     smBus[handle].bdHandle=smBDOpen(devicename);
     if(smBus[handle].bdHandle==-1) return -1;
+//     printf("in smOpenBus\n");
+//     printf("%s",smBus[handle].busDeviceName);
+//     printf("%hhd",smBus[handle].opened);
+//     printf("kraj smBusHandle\n");
 
     //success
     strncpy( smBus[handle].busDeviceName, devicename, SM_BUSDEVICENAME_LEN );
     smBus[handle].busDeviceName[SM_BUSDEVICENAME_LEN-1]=0;//null terminate string
     smBus[handle].opened=smtrue;
+    
+//     printf("in smOpenBus\n");
+//     printf("%s",smBus[handle].busDeviceName);
+//     printf("%hhd",smBus[handle].opened);
+//     printf("kraj smBusHandle\n");
     return handle;
 }
 
@@ -938,6 +947,7 @@ SM_STATUS recordStatus( const smbus handle, const SM_STATUS stat )
 /** This function returns all occurred SM_STATUS bits after smOpenBus or resetCumulativeStatus call*/
 SM_STATUS getCumulativeStatus( const smbus handle )
 {
+    printf("%d\n",smIsHandleOpen(handle));
     if(smIsHandleOpen(handle)==smfalse) return SM_ERR_NODEVICE;
 
     return smBus[handle].cumulativeSmStatus;
