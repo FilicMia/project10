@@ -34,7 +34,8 @@ char* stringifySMBusErrors(SM_STATUS smStat, smint32 smDeviceErrors)
 
     if( ((smStat!=SM_OK && smStat!=SM_NONE) || smDeviceErrors!=SMP_CMD_STATUS_ACK ))
     {
-            char* errorFlags = "";
+            char* errorFlags = (char *) malloc(4);
+            errorFlags = strcpy(errorFlags,"\0");
             char* smErrorFlags = "";
             //these faults are from SM bus host side
             if(smStat&SM_ERR_NODEVICE) appendString(errorFlags,"* NoDevice (check port name)");
