@@ -39,6 +39,7 @@ char* stringifySMBusErrors(SM_STATUS smStat, smint32 smDeviceErrors)
             //these faults are from SM bus host side
             if(smStat&SM_ERR_NODEVICE) appendString(errorFlags,"* NoDevice (check port name)");
             if(smStat&SM_ERR_PARAMETER) appendString(errorFlags, "* InvalidParameter (API)");
+            //TUU JEE
             if(smStat&SM_ERR_COMMUNICATION) appendString(errorFlags, "* Communication (cheksum mismatch)<br>");
             if(smStat&SM_ERR_LENGTH) appendString(errorFlags, "* DataLegth (timeout or app error)");
             if(smStat&SM_ERR_BUS)  appendString(errorFlags,"* BusError");
